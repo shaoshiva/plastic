@@ -84,7 +84,8 @@ return [
         | Models
         |------------------------------------------------------------------
         |
-        | The list of models, per index, from which to recreate the documents when running the console command to populate an index.
+        | The list of models, per index, from which to recreate the documents when running the console command to
+        | populate or recreate an index.
         |
         */
         'models' => [

@@ -17,7 +17,8 @@ class Populate extends Command
     protected $signature = 'plastic:populate 
                             {--mappings : Create the models mappings before populating the index}
                             {--database= : Database connection to use instead of the default one }
-                            {--index= : Index to populate instead of the default one}';
+                            {--index= : Index to populate instead of the default one}
+                            {--index-alias= : Alias name of the index}';
 
     /**
      * The console command description.
@@ -61,7 +62,7 @@ class Populate extends Command
 
         // Populates the index
         try {
-            $this->populateIndex($index);
+            $this->populateIndex($index, $this->indexAlias());
         } catch (\Exception $e) {
             $this->warn('An error occured while populating the new index !');
 
@@ -73,12 +74,17 @@ class Populate extends Command
      * Populates the index.
      *
      * @param string $index The index name
+     * @param string|null $alias The alias name of the index (optional)
      *
      * @throws \Exception
      */
-    protected function populateIndex($index)
+    protected function populateIndex($index, $alias = null)
     {
-        $this->line('Populating the index « '.$index.' » ...');
+        if (!empty($alias)) {
+            $this->line('Populating the index « '.$index.' » on the alias « '.$alias.' » ...');
+        } else {
+            $this->line('Populating the index « '.$index.' » ...');
+        }
 
         // Replaces the current default index by the one we want to populate
         $defaultIndex = Plastic::getDefaultIndex();
@@ -88,9 +94,12 @@ class Populate extends Command
         $logging = DB::connection()->logging();
         DB::connection()->disableQueryLog();
 
-        // Populates from models
-        $models = $this->models($index);
         $chunkSize = $this->chunkSize();
+
+        // Gets the models to index by the alias name or by the index to populate.
+        $models = $this->models($alias ?: $index);
+
+        // Populates from models
         foreach ($models as $model) {
             $this->line('Indexing documents of model « '.$model.' » ...');
             $model::chunk($chunkSize, function ($items) {
@@ -116,6 +125,16 @@ class Populate extends Command
     protected function index()
     {
         return $this->option('index') ?? Plastic::getDefaultIndex();
+    }
+
+    /**
+     * Gets the alias name of the index.
+     *
+     * @return array|string
+     */
+    protected function indexAlias()
+    {
+        return $this->option('index-alias');
     }
 
     /**
