@@ -13,6 +13,78 @@ return [
     'index' => env('PLASTIC_INDEX', 'plastic'),
 
     /*
+    |--------------------------------------------------------------------------
+    | Index configuration
+    |--------------------------------------------------------------------------
+    |
+    | The configuration of the indexes. Used by the console command that recreates an index.
+    |
+    */
+    'indexes' => [
+        env('PLASTIC_INDEX', 'europa-cinemas') => [
+            'settings' => [
+                'number_of_shards' => 4,
+                'number_of_replicas' => 1,
+                'analysis' => [
+                    'filter' => [
+                        'french_elision' => [
+                            'type' => 'elision',
+                            'articles_case' => true,
+                            'articles' => ['l', 'm', 't', 'qu', 'n', 's', 'j', 'd', 'c', 'jusqu', 'quoiqu', 'lorsqu', 'puisqu'],
+                        ],
+                        'french_synonym' => [
+                            'type' => 'synonym',
+                            'ignore_case' => true,
+                            'expand' => true,
+                            'synonyms' => [
+                                'united nations, un, UN',
+                                'nations unies, onu, ONU',
+                            ],
+                        ],
+                        'french_stemmer' => [
+                            'type' => 'stemmer',
+                            'language' => 'light_french',
+                        ],
+                    ],
+                    'analyzer' => [
+                        'standard' => [
+                            'type' => 'custom',
+                            'tokenizer' => 'standard',
+                            'filter' => ['lowercase'],
+                        ],
+                        'default_search' => [
+                            'type' => 'custom',
+                            'tokenizer' => 'standard',
+                            'filter' => ['standard', 'lowercase', 'asciifolding'],
+                        ],
+                        'default' => [
+                            'type' => 'custom',
+                            'tokenizer' => 'letter',
+                            'filter' => ['standard', 'lowercase', 'asciifolding'],
+                        ],
+                        'french_heavy' => [
+                            'tokenizer' => 'icu_tokenizer',
+                            'filter' => [
+                                'french_elision',
+                                'icu_folding',
+                                'french_synonym',
+                                'french_stemmer',
+                            ],
+                        ],
+                        'french_light' => [
+                            'tokenizer' => 'icu_tokenizer',
+                            'filter' => [
+                                'french_elision',
+                                'icu_folding',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ],
+
+    /*
      * Connection settings
      */
     'connection'     => [

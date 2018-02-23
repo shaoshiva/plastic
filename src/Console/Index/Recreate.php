@@ -115,11 +115,6 @@ class Recreate extends Command
             return false;
         }
 
-
-        // Deletes the new index as the populate has failed
-        $this->deleteIndexes([$newIndex]);
-        return true;
-
         // Removes the alias from the old indexes
         if (!empty($aliasedIndexes)) {
             $this->removeAliasOnIndexes($index, $aliasedIndexes);
@@ -153,8 +148,6 @@ class Recreate extends Command
             '--mappings' => true,
             '--database' => $this->option('database'),
         ]);
-
-        dump($statusCode);
 
         return $statusCode === 0;
     }
@@ -269,26 +262,6 @@ class Recreate extends Command
         );
 
         $this->client()->indices()->refresh(['index' => $indexes]);
-    }
-
-    /**
-     * Gets the models to index for the given index.
-     *
-     * @param $index
-     * @return array
-     */
-    protected function models($index)
-    {
-        return collect(config('plastic.populate.models'))->get($index, []);
-    }
-    /**
-     * Gets the chunk size.
-     *
-     * @return int
-     */
-    protected function chunkSize()
-    {
-        return (int) config('plastic.populate.chunk_size');
     }
 
     /**
